@@ -854,8 +854,10 @@ func TarWithOptions(srcPath string, options *TarOptions) (io.ReadCloser, error) 
 					// excludes pattern (e.g. !dir/file) that starts with this
 					// dir. If so then we can't skip this dir.
 
-					// Its not a dir then so we can just return/skip.
-					if !f.IsDir() {
+					// If it's not a dir then so we can just return/skip.
+					// If there is an exclusion with a '**' in it (!**/...),
+					// then we return and skip optimisations.
+					if !f.IsDir() || pm.DoubleStarExclusions() {
 						return nil
 					}
 

@@ -2386,6 +2386,45 @@ dir
 	))
 }
 
+func (s *DockerSuite) TestBuildDockerignoreIncludeStyle(c *testing.T) {
+	name := "testbuilddockerignoreincludestyle"
+	buildImageSuccessfully(c, name, build.WithBuildContext(c,
+		build.WithFile("Dockerfile", `
+		FROM busybox
+		ADD . /bla
+		RUN sh -c "[[ -f /bla/Makefile ]]"
+		RUN sh -c "[[ -f /bla/src/x.go ]]"
+		RUN sh -c "[[ -f /bla/src/_vendor/v.go ]]"
+		RUN sh -c "[[ ! -e /bla/.git ]]"
+		RUN sh -c "[[ ! -e /bla/foo ]]"
+		RUN sh -c "[[ ! -e /bla/foo1 ]]"
+		RUN sh -c "[[ ! -e /bla/dir/dir/f1 ]]"
+		RUN sh -c "[[ ! -e /bla/dir/dir/foo ]]"
+		RUN sh -c "[[ ! -e /bla/dir/e ]]"
+		RUN sh -c "[[ ! -e /bla/dir/e-dir/foo ]]"
+		RUN sh -c "[[ ! -e /bla/.gitignore ]]"
+		RUN sh -c "[[ ! -e /bla/README.md ]]"
+		RUN sh -c "[[ ! -e /bla/dir/a.cc ]]"`),
+		build.WithFile("Makefile", "all:"),
+		build.WithFile("src/x.go", "package main"),
+		build.WithFile("src/_vendor/v.go", "package main"),
+		build.WithFile(".git/HEAD", "ref: foo"),
+		build.WithFile("dir/foo", ""),
+		build.WithFile("dir/foo1", ""),
+		build.WithFile("dir/dir/f1", ""),
+		build.WithFile("dir/dir/foo", ""),
+		build.WithFile("dir/e", ""),
+		build.WithFile("dir/e-dir/foo", ""),
+		build.WithFile(".gitignore", ""),
+		build.WithFile("README.md", "readme"),
+		build.WithFile("dir/a.cc", "hello"),
+		build.WithFile(".dockerignore", `
+*
+!Makefile
+!**/*.go`),
+	))
+}
+
 func (s *DockerSuite) TestBuildDockerignoringDockerfile(c *testing.T) {
 	name := "testbuilddockerignoredockerfile"
 	dockerfile := `

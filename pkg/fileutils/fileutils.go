@@ -15,8 +15,9 @@ import (
 
 // PatternMatcher allows checking paths against a list of patterns
 type PatternMatcher struct {
-	patterns   []*Pattern
-	exclusions bool
+	patterns             []*Pattern
+	exclusions           bool
+	doubleStarExclusions bool
 }
 
 // NewPatternMatcher creates a new matcher object for specific patterns that can
@@ -40,6 +41,9 @@ func NewPatternMatcher(patterns []string) (*PatternMatcher, error) {
 			newp.exclusion = true
 			p = p[1:]
 			pm.exclusions = true
+			if strings.Contains(p, "**") {
+				pm.doubleStarExclusions = true
+			}
 		}
 		// Do some syntax checking on the pattern.
 		// filepath's Match() has some really weird rules that are inconsistent
@@ -99,6 +103,11 @@ func (pm *PatternMatcher) Matches(file string) (bool, error) {
 // Exclusions returns true if any of the patterns define exclusions
 func (pm *PatternMatcher) Exclusions() bool {
 	return pm.exclusions
+}
+
+// DoubleStarExclusions returns true if any of the patterns define exclusions with the '**' pattern
+func (pm *PatternMatcher) DoubleStarExclusions() bool {
+	return pm.doubleStarExclusions
 }
 
 // Patterns returns array of active patterns
